@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <random>
 #include "TSP.h"
 
 using namespace std;
@@ -119,7 +120,11 @@ string getRandomWordOfLength(const string &filename, size_t length)
   }
 
   // Generate a random index
-  size_t randomIndex = rand() % words.size();
+  random_device rd;  // non-deterministic generator
+  mt19937 gen(rd()); // to seed mersenne twister.
+  uniform_int_distribution<> dis(0, words.size() - 1);
+
+  size_t randomIndex = dis(gen);
 
   return words[randomIndex];
 }

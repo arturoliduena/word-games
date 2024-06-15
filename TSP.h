@@ -101,27 +101,39 @@ private:
     }
   }
 
-  int countSuffix(Node *t, const string &suffix, int i)
+  void findPartialWords(Node *t, const string &s, int i, const string prefix, vector<string> &foundWords)
   {
-    cout << suffix << " , " << i << endl;
     if (t == nullptr)
-      return 0;
+      return;
 
-    if (suffix[i] < t->c)
-      return countSuffix(t->left, suffix, i);
-    else if (suffix[i] > t->c)
-      return countSuffix(t->right, suffix, i);
+    if (s[i] == '0')
+    {
+      if (i + 1 == s.size() && t->isEndOfString)
+      {
+        foundWords.push_back(prefix + t->c);
+        return;
+      }
+      findPartialWords(t->left, s, i, prefix, foundWords);
+      findPartialWords(t->mid, s, i + 1, prefix + t->c, foundWords);
+      findPartialWords(t->right, s, i, prefix, foundWords);
+    }
+    else if (s[i] < t->c)
+      findPartialWords(t->left, s, i, prefix, foundWords);
+    else if (s[i] > t->c)
+      findPartialWords(t->right, s, i, prefix, foundWords);
     else
     {
-      if (i + 1 < suffix.size())
-        return countSuffix(t->mid, suffix, i + 1);
+      if (i + 1 == s.size() && t->isEndOfString)
+      {
+        foundWords.push_back(prefix + t->c);
+        return;
+      }
       else
       {
 
-        return t->count;
+        findPartialWords(t->mid, s, i + 1, prefix + t->c, foundWords);
       }
     }
-    return 0;
   }
 
   void clear(Node *&t)
@@ -153,11 +165,6 @@ public:
     root = erase(root, s, 0);
   }
 
-  int countSuffix(const string &suffix)
-  {
-    return !suffix.empty() ? countSuffix(root, suffix, suffix.size() - 1) : 0;
-  }
-
   bool search(const string &s)
   {
     return search(root, s, 0);
@@ -166,6 +173,11 @@ public:
   void findWords(const string &s, vector<string> &foundWords)
   {
     findWords(root, s, 0, "", foundWords);
+  }
+
+  void findPartialWords(const string &partial_s, vector<string> &foundWords)
+  {
+    findPartialWords(root, partial_s, 0, "", foundWords);
   }
 
   void reset()

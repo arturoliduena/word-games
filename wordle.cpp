@@ -1,90 +1,11 @@
 #include <iostream>
-#include <unordered_set>
 #include <vector>
 #include <string>
-#include <algorithm>
-#include <random>
 #include <chrono>
 #include <set>
 #include "utils.h"
 #include "TSP.h"
-
-using namespace std;
-using namespace chrono;
-
-class WordleGame
-{
-private:
-  int MAX_GUESSES;
-  int guessCount;
-
-public:
-  WordleGame(int maxGuesses) : MAX_GUESSES(maxGuesses), guessCount(0) {}
-  bool isCorrectGuess(const string &guess, const string &feedback)
-  {
-    guessCount++;
-    return feedback == string(guess.length(), '2');
-  }
-  bool isGameOver() const
-  {
-    return guessCount >= MAX_GUESSES;
-  }
-
-  int getGuessCount() const
-  {
-    return guessCount;
-  }
-};
-
-class WordleKeeper
-{
-private:
-  string secret;
-  set<char> secret_set;
-
-public:
-  WordleKeeper(const size_t length)
-  {
-    string word = getRandomWordOfLength("dictionary.txt", length);
-    cout << "Secret word: " << word << endl;
-    secret = word;
-    secret_set = set<char>(secret.begin(), secret.end());
-  }
-
-  string feedback(const string &guess)
-  {
-    string result(secret.length(), '0');
-    vector<bool> secretUsed(secret.length(), false);
-    for (size_t i = 0; i < guess.length(); ++i)
-    {
-      if (guess[i] == secret[i])
-      {
-        result[i] = '2';
-        secretUsed[i] = true;
-      }
-      else if (secret_set.find(guess[i]) != secret_set.end())
-      {
-        result[i] = '1';
-      }
-    }
-    return result;
-  }
-};
-
-class WordleGuesser
-{
-private:
-  const size_t length;
-
-public:
-  WordleGuesser(const size_t length) : length(length) {}
-
-  string makeGuess()
-  {
-    // Select a random word of specified length from the dictionary
-    return getRandomWordOfLength("dictionary.txt", length);
-  }
-};
+#include "wordle.h"
 
 int main()
 {
@@ -95,7 +16,7 @@ int main()
     cout << "Failed to load dictionary. Exiting." << endl;
     return 1;
   }
-  const int MAX_GUESSES = 6;
+  const int MAX_GUESSES = 20;
 
   string mode;
   cout << "Enter mode (interactive/automatic): ";
@@ -135,6 +56,7 @@ int main()
         }
         cout << "Feedback: " << feedback << endl;
       }
+      keeper.print_secret();
     }
     else if (play == 2)
     {
@@ -144,7 +66,7 @@ int main()
       while (!wordleGame.isGameOver())
       {
         // Select a random word of specified length from the dictionary
-        string guess = guesser.makeGuess();
+        string guess = guesser.makeGuess(dictionary);
         cout << "Guess: " << guess << endl;
         cout << "give the answers(the strings of 0s, 1s, and 2's - length " << wordLength << "): ";
         string feedback;
@@ -159,6 +81,7 @@ int main()
           cout << "Correct guess!" << endl;
           break;
         }
+        guesser.updateFeedback(feedback, guess);
         cout << "Feedback: " << feedback << endl;
       }
     }
@@ -183,7 +106,7 @@ int main()
       while (!wordleGame.isGameOver())
       {
 
-        string guess = guesser.makeGuess();
+        string guess = guesser.makeGuess(dictionary);
         string feedback = keeper.feedback(guess);
 
         if (wordleGame.isCorrectGuess(guess, feedback))
@@ -191,6 +114,7 @@ int main()
           cout << "Correct guess!" << endl;
           break;
         }
+        guesser.updateFeedback(feedback, guess);
         cout << "Feedback: " << feedback << endl;
       }
       auto end = high_resolution_clock::now();
